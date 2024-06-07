@@ -1,23 +1,32 @@
-import requests
+import pandas as pd
+import subprocess
+import PyPDF2
+import os
+from pdf2image import convert_from_path
 
-def download_paper(download_url, output_filename):
-    response = requests.get(download_url)
-    if response.status_code == 200:
-        with open(output_filename, 'wb') as file:
-            file.write(response.content)
-        print(f'Download completed successfully! Saved as {output_filename}')
+def download_paper_by_title(title):
+    # Construct the command as you would run it in the terminal
+    command = ['scidownl', 'download', '--title', title]
+    # Run the command
+    result = subprocess.run(command, capture_output=True, text=True)
+    
+    # Print the output from the command
+    if result.stdout:
+        print("Output:", result.stdout)
+    if result.stderr:
+        print("Error:", result.stderr)
+
+    # Check if the command was successful
+    if result.returncode == 0:
+        print("Download completed successfully.")
+        
     else:
-        print('Failed to download the paper.')
+        print(f"Failed to download paper. Return code: {result.returncode}")
 
-# Example usage
-papers_to_download = [
-    {"Title": "Paper 1", "Download_URL": "URL_TO_PAPER_1"},
-    {"Title": "Paper 2", "Download_URL": "URL_TO_PAPER_2"},
-    # Add more papers as needed
-]
+# Load DataFrame
+df = pd.read_csv('filtered_papers.csv',delimiter=';')  # Replace 'papers.csv' with your file path
 
-for paper in papers_to_download:
-    title = paper["Title"]
-    download_url = paper["Download_URL"]
-    output_filename = f'{title}.pdf'
-    download_paper(download_url, output_filename)
+titles=pd.Series(df['Title'])
+for i in titles:
+    print(i)
+    download_paper_by_title(i)
