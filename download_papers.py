@@ -1,45 +1,46 @@
+import pandas as pd   
 import requests
 from bs4 import BeautifulSoup
-import re
-import os
-import pandas as pd
 
-def login_researchgate(email, password):
-    login_url = "https://www.researchgate.net/login"
-    session = requests.Session()
-    
-    # Get the login page to retrieve the authenticity token
-    login_page = session.get(login_url)
-    soup = BeautifulSoup(login_page.text, 'html.parser')
-    
-    # Extract authenticity token
-    token_input = soup.find('input', {'name': 'authenticity_token'})
-    if not token_input:
-        print("Failed to find authenticity token on the login page.")
-        return None
-    
-    token = token_input.get('value')
-    
-    # Prepare login data
-    login_data = {
-        'utf8': '✓',
-        'authenticity_token': token,
-        'login': email,
-        'password': password,
-        'remember': '1'
+def download_paper(url, target_title, output_filename):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
-    # Perform login
-    response = session.post(login_url, data=login_data)
+    # Send a request to the page with the list of papers
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print('Failed to retrieve the page.')
+        return
+
+    # Parse the page content
+    soup = BeautifulSoup(response.content, 'html.parser')
     
-    # Check if login was successful
-    if "dashboard" in response.url or response.url == "https://www.researchgate.net/home":
-        print("Login successful!")
-        return session
+    # Find all paper titles and their download links
+    papers = soup.find_all('a', {'class': 'nova-e-link nova-e-link--color-inherit nova-e-link--theme-bare'})
+    
+    # Loop through each paper to find the matching title
+    found = False
+    for paper in papers:
+        title = paper.text.strip()
+        if target_title.lower() in title.lower():
+            found = True
+            download_url = paper['href']
+            break
+    
+    if not found:
+        print(f'Paper with title "{target_title}" not found.')
+        return
+    
+    # Download the paper
+    paper_response = requests.get(download_url, headers=headers)
+    if paper_response.status_code == 200:
+        with open(output_filename, 'wb') as file:
+            file.write(paper_response.content)
+        print(f'Download completed successfully! Saved as {output_filename}')
     else:
-        print("Login failed!")
-        return None
-    
+        print('Failed to download the paper.')
+
 df = pd.read_csv('filtered_papers.csv',sep=";")
 dfo = df.sort_values(by='Year')
 
@@ -50,9 +51,10 @@ element = df.iloc[0,0]
 email = "leidy.leal@uptc.edu.co"
 password = "mileleal"
 article_title = element
-session = login_researchgate(email, password)
-if session:
-    # Now you can use `session` to make authenticated requests
-    profile_url = "https://www.researchgate.net/profile/Your_Profile"
-    profile_page = session.get(profile_url)
-    print(profile_page.text) 
+
+# Example usage
+url = 'https://www.researchgate.net/scientific-contributions/Hans-J-Herrmann-2123959106'  # Replace with the actual URL
+target_title = 'Modeling public opinion control by a charismatic leader'
+output_filename = 'downloaded_paper.pdf'
+download_paper(url, target_title, output_filename)
+
