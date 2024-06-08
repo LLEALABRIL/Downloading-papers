@@ -63,4 +63,4 @@ common_titles_df = common_titles_df.rename(columns={'Year_x': 'Year'})
 common_titles_df = common_titles_df.sort_values(by='Year')
 print(common_titles_df)
 filtered_df2 = common_titles_df.iloc[:, :-1]
-filtered_df2.to_csv('filtered_papers.csv',sep=';', index=False)
+filtered_df2.to_csv('filtered_papers1.csv',sep=';', index=False)
