@@ -43,7 +43,7 @@ df = pd.read_csv('filtered_papers.csv',delimiter=';')  # Replace 'papers.csv' wi
 
 titles=pd.Series(df['Title'])
 año=pd.Series(df['Year'])
-for i in range(104,len(titles)):
+for i in range(0,len(titles)):
     print(i)
     lista_papers_found=download_paper_by_title(año[i],titles[i])
 print(lista_papers_found)    
