@@ -45,6 +45,7 @@ def download_paper_by_title(año,title):
         print("Output:", result.stdout)
     if result.stderr:
         print("Error:", result.stderr)
+        print('here')
 
     # Check if the command was successful
     after_files = set(os.listdir('.'))
@@ -79,11 +80,12 @@ df['Numbers'] = numbers
 numero=pd.Series(df['Numbers'])
 for i in range(0,len(titles)):
     print(i)
-    state=download_paper_by_title(numero[i],titles[i])
-    if(state==False):
-        if(":" in titles[i]):
-            titles[i]=re.sub(r'[:]', '', titles[i])
-            print(titles[i])
-        download_paper_by_title(numero[i],titles[i])
+    if(i==2):
+        state=download_paper_by_title(numero[i],titles[i])
+        if(state==False):
+            if(":" in titles[i]):
+                titles[i]=re.sub(r'[:]', '', titles[i])
+                print(titles[i])
+            download_paper_by_title(numero[i],titles[i])
 
 #print(lista_papers_found)
